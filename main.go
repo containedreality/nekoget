@@ -212,13 +212,11 @@ func main() {
 	var maxdepth int
 	var threads int
 	var list string
-	var url string
 	var out string
 	var path string
 	var host string
 
 	flag.StringVar(&list, "list", "", "a list of URLs to download from")
-	flag.StringVar(&url, "url", "", "the url to download from")
 	flag.StringVar(&out, "out", "", "the file to output to, use - for stdout.")
 	flag.StringVar(&path, "serve-path", "", "the path to serve, must be set to enable server mode.")
 	flag.StringVar(&host, "serve-host", ":8000", "host to serve files on")
@@ -243,7 +241,9 @@ func main() {
 	if list != "" {
 		DownloadHttpList(list, dirs, threads)
 	} else if spiderFlag {
-		Spider(url, out, maxdepth)
+		for _, url := range urls {
+			Spider(url, out, maxdepth)
+		}
 	} else {
 		for _, url := range urls {
 			DownloadHttp(url, out, true)
