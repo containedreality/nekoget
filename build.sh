@@ -12,7 +12,6 @@ for x in $(go tool dist list); do
 	export GOOS=$(echo $x | cut -d'/' -f1)
 	export GOARCH=$(echo $x | cut -d'/' -f2)
 
-	# fuck that shit
 	if [ "${ESOTERIC}" = 0 ]; then
 		case "$GOOS" in
 		freebsd)
