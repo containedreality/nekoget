@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha256"
-	"crypto/sha3"
 	"flag"
 	"fmt"
 	"io"
@@ -19,6 +18,7 @@ import (
 	"github.com/containedreality/nekoget/progresstracker"
 	"github.com/containedreality/nekoget/server"
 	"github.com/containedreality/nekoget/spider"
+	"golang.org/x/crypto/blake2b"
 )
 
 type DownloadJob struct {
@@ -66,9 +66,9 @@ func DownloadHttp(url string, outname string, progressbar bool) {
 	defer out.Close()
 	defer resp.Body.Close()
 
-	// sha2-256 is only really here cause most things use it.
+	// sha2-256 is only really here cause most things use it or have support for it.
 	sha2_256 := sha256.New()
-	sha3_512 := sha3.New512()
+	b2b, _ := blake2b.New512(nil)
 
 	var writers io.Writer
 
@@ -78,9 +78,9 @@ func DownloadHttp(url string, outname string, progressbar bool) {
 			Total:      resp.ContentLength,
 		}
 
-		writers = io.MultiWriter(x, sha2_256, sha3_512)
+		writers = io.MultiWriter(x, sha2_256, b2b)
 	} else {
-		writers = io.MultiWriter(out, sha2_256, sha3_512)
+		writers = io.MultiWriter(out, sha2_256, b2b)
 	}
 
 	_, err = io.CopyBuffer(writers, resp.Body, buf)
@@ -94,8 +94,8 @@ func DownloadHttp(url string, outname string, progressbar bool) {
 	} else {
 		log.Printf("Downloaded: %s\n", outname)
 	}
-	log.Printf("SHA2_256: %x\n", sha2_256.Sum(nil))
-	log.Printf("SHA3_512: %x\n", sha3_512.Sum(nil))
+	log.Printf("SHA256 : %x\n", sha2_256.Sum(nil))
+	log.Printf("BLAKE2B: %x\n", b2b.Sum(nil))
 }
 
 func downloadListWorker(jobs <-chan DownloadJob, wg *sync.WaitGroup) {
